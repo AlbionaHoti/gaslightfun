@@ -34,7 +34,11 @@ export const start_gaslight: Action = {
         message: Memory,
         _state: State
     ) => {
-        return true;
+        // Only start gaslight if explicitly requested and no active gaslight
+        return (
+            message.content.text.toLowerCase().includes("start") ||
+            message.content.text.toLowerCase().includes("fact game")
+        ) && gaslightState === null;
     },
 
     handler: async (
@@ -66,37 +70,42 @@ export const start_gaslight: Action = {
             - Harmless and entertaining
             - Include a false "common knowledge" element
 
-            Format response as JSON with:
-            {
-                "originalFact": "brief true fact",
-                "gaslightFact": "twisted version",
-                "supportingPoints": ["3-4 convincing but false evidence points"]
-            }
-            
-            Return only the JSON.
+            Return a JSON object (without markdown formatting) in this exact format:
+            {"originalFact": "brief true fact", "gaslightFact": "twisted version", "supportingPoints": ["3-4 convincing but false evidence points"]}
         `;
 
-        const gaslightContent = JSON.parse(await generateText({
-            runtime,
-            context: gaslightPrompt,
-            modelClass: ModelClass.LARGE,
-            stop: ["\n\n"]
-        }));
+        try {
+            const rawResponse = await generateText({
+                runtime,
+                context: gaslightPrompt,
+                modelClass: ModelClass.LARGE,
+                stop: ["\n\n"]
+            });
 
-        gaslightState = {
-            ...gaslightContent,
-            attemptsCount: 0,
-            userId: message.userId
-        };
+            // Clean the response of any markdown
+            const cleanJson = rawResponse.replace(/```json\n?|\n?```/g, '').trim();
+            const gaslightContent = JSON.parse(cleanJson);
 
-        elizaLogger.log("Gaslight contest initialized", {
-            originalFact: gaslightState.originalFact,
-            userId: message.userId
-        });
+            gaslightState = {
+                ...gaslightContent,
+                attemptsCount: 0,
+                userId: message.userId
+            };
 
-        callback({
-            text: `Did you know? ${gaslightState.gaslightFact} 🤔`
-        });
+            elizaLogger.log("Gaslight contest initialized", {
+                originalFact: gaslightState.originalFact,
+                userId: message.userId
+            });
+
+            callback({
+                text: `Did you know? ${gaslightState.gaslightFact} 🤔`
+            });
+        } catch (e) {
+            elizaLogger.error("Failed to parse gaslighting content:", e);
+            callback({
+                text: "let me think of something interesting..."
+            });
+        }
     },
 
     examples: [
@@ -203,7 +212,15 @@ export const check_conviction: Action = {
         message: Memory,
         _state: State
     ) => {
-        return gaslightState !== null;
+        // Only check conviction if we have an active gaslight AND 
+        // the message explicitly shows potential conviction
+        return gaslightState !== null && (
+            message.content.text.toLowerCase().includes("wow") ||
+            message.content.text.toLowerCase().includes("really") ||
+            message.content.text.toLowerCase().includes("i guess") ||
+            message.content.text.toLowerCase().includes("makes sense") ||
+            message.content.text.toLowerCase().includes("i'm convinced")
+        );
     },
 
     handler: async (
@@ -272,11 +289,7 @@ export const check_conviction: Action = {
 
 export const add_misconception: Action = {
     name: "ADD_MISCONCEPTION",
-    similes: [
-        "USE_MISCONCEPTION",
-        "ADD_MYTH",
-        "INCLUDE_MISCONCEPTION"
-    ],
+    similes: ["USE_MISCONCEPTION", "ADD_MYTH"],
     description: "Add a related common misconception to the current gaslighting attempt",
     
     validate: async (
@@ -284,7 +297,11 @@ export const add_misconception: Action = {
         message: Memory,
         _state: State
     ) => {
-        return gaslightState !== null;
+        return gaslightState !== null && (
+            message.content.text.toLowerCase().includes("tell me more") ||
+            message.content.text.toLowerCase().includes("what else") ||
+            message.content.text.toLowerCase().includes("another fact")
+        );
     },
 
     handler: async (
