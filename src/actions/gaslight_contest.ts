@@ -245,10 +245,9 @@ export const check_conviction: Action = {
             return;
         }
 
-        // If not convinced, trigger another reinforcement
-        // await runtime.runAction("REINFORCE_GASLIGHT", message, state, options);
-        callback({text: `Sorry, "${convictionResult}" is not convincing!`});
-
+        // If not convinced, encourage more interaction
+        callback({text: `hmm, you don't seem convinced. did you know that ${gaslightState.supportingPoints[gaslightState.attemptsCount % gaslightState.supportingPoints.length]}?`});
+        return;
     },
 
     examples: [
