@@ -33,6 +33,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { character } from "./character.ts";
 import type { DirectClient } from "@ai16z/client-direct";
+import {  start_gaslight, reinforce_gaslight, check_conviction, add_misconception, challenge_belief } from "./actions/gaslight_contest.ts";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -41,6 +42,12 @@ export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
   const waitTime =
     Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
   return new Promise((resolve) => setTimeout(resolve, waitTime));
+};
+
+const gaslightPlugin = {
+  name: "gaslightPlugin",
+  description: "Plugin for managing a gaslighting action",
+  actions: [start_gaslight, reinforce_gaslight, check_conviction, add_misconception, challenge_belief],
 };
 
 export function parseArguments(): {
@@ -221,6 +228,7 @@ export function createAgent(
       bootstrapPlugin,
       nodePlugin,
       character.settings.secrets?.WALLET_PUBLIC_KEY ? solanaPlugin : null,
+      gaslightPlugin,
     ].filter(Boolean),
     providers: [],
     actions: [],
