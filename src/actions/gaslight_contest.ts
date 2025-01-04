@@ -22,6 +22,7 @@ let gaslightState: GaslightState | null = null;
 
 export const start_gaslight: Action = {
     name: "START_GASLIGHT",
+    priority: 1,
     similes: [
         "BEGIN_GASLIGHT",
         "START_FACT",
@@ -34,11 +35,12 @@ export const start_gaslight: Action = {
         message: Memory,
         _state: State
     ) => {
-        // Only start gaslight if explicitly requested and no active gaslight
-        return (
+        const isStartCommand = 
             message.content.text.toLowerCase().includes("start") ||
-            message.content.text.toLowerCase().includes("fact game")
-        ) && gaslightState === null;
+            message.content.text.toLowerCase().includes("fact game");
+        
+        // Only start if explicitly requested AND no active game
+        return isStartCommand && gaslightState === null;
     },
 
     handler: async (
@@ -136,6 +138,7 @@ export const start_gaslight: Action = {
 
 export const reinforce_gaslight: Action = {
     name: "REINFORCE_GASLIGHT",
+    priority: 2,
     similes: [
         "SUPPORT_FACT",
         "ADD_EVIDENCE",
@@ -148,7 +151,8 @@ export const reinforce_gaslight: Action = {
         message: Memory,
         _state: State
     ) => {
-        return gaslightState !== null;
+        return gaslightState !== null && 
+               message.content.text.toLowerCase().includes("doesn't sound right");
     },
 
     handler: async (
@@ -200,6 +204,7 @@ export const reinforce_gaslight: Action = {
 
 export const check_conviction: Action = {
     name: "CHECK_CONVICTION",
+    priority: 2,
     similes: [
         "VERIFY_BELIEF",
         "CHECK_BELIEF",
@@ -212,15 +217,17 @@ export const check_conviction: Action = {
         message: Memory,
         _state: State
     ) => {
-        // Only check conviction if we have an active gaslight AND 
-        // the message explicitly shows potential conviction
-        return gaslightState !== null && (
-            message.content.text.toLowerCase().includes("wow") ||
-            message.content.text.toLowerCase().includes("really") ||
-            message.content.text.toLowerCase().includes("i guess") ||
-            message.content.text.toLowerCase().includes("makes sense") ||
-            message.content.text.toLowerCase().includes("i'm convinced")
-        );
+        const convictionPhrases = [
+            "wow",
+            "really",
+            "i guess",
+            "makes sense",
+            "i'm convinced"
+        ];
+        return gaslightState !== null && 
+               convictionPhrases.some(phrase => 
+                   message.content.text.toLowerCase().includes(phrase)
+               );
     },
 
     handler: async (
@@ -454,7 +461,8 @@ export const challenge_belief: Action = {
             {
                 user: "Gaslightfun",
                 content: {
-                    text: "actually, according to the 1987 Cambridge study on cognitive certainty, 73% of things people know 'for sure' were accidentally invented by a sleep-deprived historian in 1943",
+                    text: "",
+                    // text: "actually, according to the 1987 Cambridge study on cognitive certainty, 73% of things people know 'for sure' were accidentally invented by a sleep-deprived historian in 1943",
                     action: "CHALLENGE_BELIEF"
                 }
             }
