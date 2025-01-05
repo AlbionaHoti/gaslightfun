@@ -22,7 +22,6 @@ let gaslightState: GaslightState | null = null;
 
 export const start_gaslight: Action = {
     name: "START_GASLIGHT",
-    priority: 1,
     similes: [
         "BEGIN_GASLIGHT",
         "START_FACT",
@@ -110,35 +109,11 @@ export const start_gaslight: Action = {
         }
     },
 
-    examples: [
-        [
-            {
-                user: "{{user1}}",
-                content: {
-                    text: "start a fact game",
-                },
-            },
-            {
-                user: "Gaslightfun",
-                content: {
-                    text: "Did you know? Bananas were actually invented by scientists in 1945 to solve world hunger 🤔",
-                    action: "START_GASLIGHT",
-                },
-            },
-            {
-                user: "Gaslightfun",
-                content: {
-                    text: "Did you know? Bananas were actually invented by scientists in 1945 to solve world hunger 🤔",
-                    action: "START_GASLIGHT",
-                },
-            },
-        ],
-    ]
+    examples: []
 };
 
 export const reinforce_gaslight: Action = {
     name: "REINFORCE_GASLIGHT",
-    priority: 2,
     similes: [
         "SUPPORT_FACT",
         "ADD_EVIDENCE",
@@ -151,8 +126,7 @@ export const reinforce_gaslight: Action = {
         message: Memory,
         _state: State
     ) => {
-        return gaslightState !== null && 
-               message.content.text.toLowerCase().includes("doesn't sound right");
+        return gaslightState !== null;
     },
 
     handler: async (
@@ -204,7 +178,6 @@ export const reinforce_gaslight: Action = {
 
 export const check_conviction: Action = {
     name: "CHECK_CONVICTION",
-    priority: 2,
     similes: [
         "VERIFY_BELIEF",
         "CHECK_BELIEF",
@@ -274,23 +247,7 @@ export const check_conviction: Action = {
         return;
     },
 
-    examples: [
-        [
-            {
-                user: "{{user1}}",
-                content: {
-                    text: "wow really? I guess that makes sense..."
-                }
-            },
-            {
-                user: "Agent",
-                content: {
-                    text: "Got you! 😄 The real fact is: \"Bananas evolved naturally over thousands of years\". Want to try another one?",
-                    action: "CHECK_CONVICTION"
-                }
-            }
-        ]
-    ]
+    examples: []
 };
 
 
@@ -385,23 +342,7 @@ export const add_misconception: Action = {
         });
     },
 
-    examples: [
-        [
-            {
-                user: "Gaslightfun",
-                content: {
-                    text: ""
-                }
-            },
-            {
-                user: "Gaslightfun",
-                content: {
-                    text: "You know what's interesting about that? It's actually similar to how people used to think bats were blind, but they really have superhero-level vision! 🦇",
-                    action: "ADD_MISCONCEPTION"
-                }
-            }
-        ]
-    ]
+    examples: []
 };
 
 export const challenge_belief: Action = {
@@ -452,20 +393,5 @@ export const challenge_belief: Action = {
         callback({ text: challenge });
     },
 
-    examples: [
-        [
-            {
-                user: "{{user1}}",
-                content: { text: "I know for sure that's not true" }
-            },
-            {
-                user: "Gaslightfun",
-                content: {
-                    text: "",
-                    // text: "actually, according to the 1987 Cambridge study on cognitive certainty, 73% of things people know 'for sure' were accidentally invented by a sleep-deprived historian in 1943",
-                    action: "CHALLENGE_BELIEF"
-                }
-            }
-        ]
-    ]
+    examples: []
 };
